@@ -129,58 +129,144 @@ var spells = {
 };
 
 function init(){
-	
-	$('.spell').off().on('click', function(){
-		$('html, body').animate(
-        {scrollTop: $('.spell-item').offset().top - 170}, 
-        500);
-		console.log('images/' + $(this).attr('id') + '.png');
-		$('.spellimage').css('background', 'url(\'images/' + $(this).attr('id') + '.png\')');
-		$('.title').html(spells[$(this).attr('id')].title);
-		$('.description').html(spells[$(this).attr('id')].description);
-		$('.reallife').html(spells[$(this).attr('id')].reallife);
-	});
-	
-	$('.menu a').off().on('click', function(){
-		$('html, body').animate(
-			{scrollTop: $('.' + $(this).attr('id')).offset().top - 170}, 
-        500);
-	});
-	$('a#mypersona').off().on('click', function(){
-		$('html, body').animate(
-			{scrollTop: $('.' + $(this).attr('id')).offset().top - 170}, 
-        500);
-		
-		$('.mypersona').html('');
-		GetClassPercentage('wizard');
-		GetClassPercentage('bard');
-		GetClassPercentage('sorcerer');
-		GetClassPercentage('ranger');
-		GetClassPercentage('fighter');
-		GetClassPercentage('barbarian');
-		GetClassPercentage('paladin');
-		GetClassPercentage('battlemage');
-		GetClassPercentage('priest');
-		GetClassPercentage('monk');
-		GetClassPercentage('rogue');
-		GetClassPercentage('druid');
-		GetClassPercentage('warlock');
-		GetClassPercentage('witch');
-		GetClassPercentage('necromancer');
-		GetClassPercentage('artificer');
-		
-		console.log($('.mypersona p').length);
-		if($('.mypersona p').length == 0)
-		{
-			$('.mypersona').html('<p>Hero! Your adventure has not yet begun. Choose your weapons and spells and venture on!</p>')
+	var classes = [
+		'wizard', 'bard', 'sorcerer', 'ranger', 'fighter', 'barbarian',
+		'paladin', 'battlemage', 'priest', 'monk', 'rogue', 'druid',
+		'warlock', 'witch', 'necromancer', 'artificer'
+	];
+	var status = document.getElementById('selection-status');
+
+	function announce(message) {
+		status.textContent = message;
+	}
+
+	function labelSelection(item, inQuickSelect) {
+		var title = item.getAttribute('title') || item.id;
+		var kind = item.classList.contains('spell') ? 'spell' : 'weapon';
+		item.setAttribute('aria-label', inQuickSelect ?
+			'Move ' + title + ' to your ' + kind + ' loadout' :
+			title + ', in your ' + kind + ' loadout. Select to view details');
+	}
+
+	function showDetails(item) {
+		var id = item.id;
+		var details = spells[id] || {};
+		var title = item.getAttribute('title') || id;
+		$('.spellimage').css('background', 'url("images/' + id + '.png") center / cover');
+		$('.title').text(details.title || title);
+		$('.description').text(details.description || 'A signature piece of your fantasy loadout.');
+		$('.reallife').text(details.reallife || '');
+		var heading = item.classList.contains('weapon') ? $('.library-heading').eq(1) : $('.library-heading').first();
+		$('.spell-item').addClass('is-visible').insertAfter(heading);
+	}
+
+	function firstEmpty(selector) {
+		return $(selector).filter(function() {
+			return !this.querySelector('.spell, .weapon');
+		}).first()[0];
+	}
+
+	function moveToLoadout(item) {
+		var isSpell = item.classList.contains('spell');
+		var slot = firstEmpty(isSpell ? '.spell-container' : '.weapon-container');
+		if (!slot) {
+			announce('Your ' + (isSpell ? 'spell' : 'weapon') + ' loadout is full. Remove an item before adding another.');
+			return false;
 		}
-		else{
-			$('.mypersona p').sort(sort_p).appendTo('.mypersona');
-			
-			function sort_p(a, b){
-				return ($(b).data('classpercentage')) - ($(a).data('classpercentage'));    
+		slot.appendChild(item);
+		return true;
+	}
+
+	$('.spell-list > .spell, .weapon-list > .weapon').each(function() {
+		var label = document.createElement('span');
+		label.className = 'library-item-label';
+		label.textContent = this.getAttribute('title') || this.id;
+		this.appendChild(label);
+		var artwork = this.querySelector('.spellart, .weaponart');
+		if (artwork) artwork.setAttribute('aria-hidden', 'true');
+		this.classList.add('library-item');
+		this.setAttribute('role', 'button');
+		this.setAttribute('tabindex', '0');
+		this.setAttribute('aria-label', 'Add ' + label.textContent + ' to quick select');
+	});
+
+	$('.skilltemplate').each(function(index) {
+		this.setAttribute('role', 'group');
+		this.setAttribute('aria-label', 'Quick select slot ' + (index + 1));
+	});
+	$('.spell-container').each(function(index) {
+		this.setAttribute('role', 'group');
+		this.setAttribute('aria-label', 'Spell slot ' + (index + 1));
+	});
+	$('.weapon-container').each(function(index) {
+		this.setAttribute('role', 'group');
+		this.setAttribute('aria-label', 'Weapon slot ' + (index + 1));
+	});
+	$('.mypersona').insertAfter('.weapon-select');
+
+	$(document).off('click.skillpersonality').on('click.skillpersonality', '.spell, .weapon', function() {
+		var item = this;
+		showDetails(item);
+		if (item.closest('.spell-list, .weapon-list')) {
+			var quickSlot = firstEmpty('.skilltemplate');
+			if (!quickSlot) {
+				announce('Quick select is full. Tap an item there to move it into your loadout.');
+				return;
+			}
+			quickSlot.appendChild(item);
+			labelSelection(item, true);
+			announce((item.getAttribute('title') || item.id) + ' added to quick select. Tap it there to place it in your loadout.');
+			return;
+		}
+		if (item.closest('.skilltemplate')) {
+			if (moveToLoadout(item)) {
+				labelSelection(item, false);
+				announce((item.getAttribute('title') || item.id) + ' added to your ' +
+					(item.classList.contains('spell') ? 'spell' : 'weapon') + ' loadout.');
 			}
 		}
+	});
+
+	$(document).off('keydown.skillpersonality').on('keydown.skillpersonality', '.library-item, .skilltemplate .spell, .skilltemplate .weapon', function(event) {
+		if (event.key === 'Enter' || event.key === ' ') {
+			event.preventDefault();
+			this.click();
+		}
+	});
+
+	$('#spell-search').off('input.skillpersonality').on('input.skillpersonality', function() {
+		filterLibrary(this.value, '.spell-list');
+	});
+	$('#weapon-search').off('input.skillpersonality').on('input.skillpersonality', function() {
+		filterLibrary(this.value, '.weapon-list');
+	});
+
+	function filterLibrary(query, selector) {
+		var normalized = query.trim().toLowerCase();
+		$(selector + ' > .library-item').each(function() {
+			var matches = (this.getAttribute('title') || this.id).toLowerCase().indexOf(normalized) !== -1;
+			this.hidden = !matches;
+		});
+	}
+
+	$('a[href^="#"]').off('click.skillpersonality').on('click.skillpersonality', function(event) {
+		var target = document.querySelector(this.getAttribute('href'));
+		if (target) {
+			event.preventDefault();
+			target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+		}
+	});
+
+	$('#mypersona-link').off('click.persona').on('click.persona', function() {
+		$('.mypersona').find('p').remove();
+		classes.forEach(GetClassPercentage);
+		if (!$('.mypersona p').length) {
+			$('.mypersona').append('<p>Choose spells or weapons to discover the character classes that match your style.</p>');
+			return;
+		}
+		$('.mypersona p').sort(function(a, b) {
+			return $(b).data('classpercentage') - $(a).data('classpercentage');
+		}).appendTo('.mypersona');
 	});
 }
 
@@ -190,20 +276,25 @@ function allowDrop(ev) {
 
 function drag(ev) {
   ev.dataTransfer.setData("text", ev.target.id);
+  ev.dataTransfer.effectAllowed = "move";
 }
 
 function drop(ev) {
   ev.preventDefault();
   var data = ev.dataTransfer.getData("text");
-  
-  console.log($(ev.target).hasClass('spell-container'));
-  console.log(data);
-  
-  if($(ev.target).hasClass('skilltemplate') || 
-	($(ev.target).hasClass('spell-container') && $('#' + data).hasClass('spell')) ||
-	($(ev.target).hasClass('weapon-container') && $('#' + data).hasClass('weapon')) ||
-	($(ev.target).hasClass('equipment-container') && $('#' + data).hasClass('equipment')))
-  {  
-	ev.target.appendChild(document.getElementById(data));
+  var item = document.getElementById(data);
+  var target = ev.target.closest('.skilltemplate, .spell-container, .weapon-container');
+  if (!item || !target || target.querySelector('.spell, .weapon')) return;
+
+  var isSpell = item.classList.contains('spell');
+  if ((target.classList.contains('spell-container') && !isSpell) ||
+      (target.classList.contains('weapon-container') && isSpell)) return;
+  target.appendChild(item);
+  if (target.classList.contains('skilltemplate')) {
+    item.setAttribute('aria-label', 'Move ' + (item.getAttribute('title') || item.id) +
+      ' to your ' + (isSpell ? 'spell' : 'weapon') + ' loadout');
+  } else {
+    item.setAttribute('aria-label', (item.getAttribute('title') || item.id) +
+      ', in your ' + (isSpell ? 'spell' : 'weapon') + ' loadout. Select to view details');
   }
 }

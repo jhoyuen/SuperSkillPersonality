@@ -1,7 +1,10 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#111522">
+<meta name="description" content="Build a fantasy persona from a library of spells and weapons.">
+<title>Skill Personality — Build your legend</title>
 <!-- <link href="http://allfont.net/allfont.css?fonts=runic" rel="stylesheet" type="text/css" /> -->
 <link rel="stylesheet" href="css/fontawesome/css/all.css" />
 <style type="text/css">
@@ -446,22 +449,279 @@ left: 0cm;
 	}
 }
 
+/* New responsive library and character-builder interface */
+:root {
+  color-scheme: dark;
+  --page: #111522;
+  --panel: #1b2030;
+  --panel-raised: #242b3d;
+  --ink: #f4f0e8;
+  --muted: #a7afc2;
+  --gold: #f0c879;
+  --mint: #91e2c0;
+  --line: rgba(235, 231, 220, .12);
+}
+html { scroll-behavior: smooth; scroll-padding-top: 100px; }
+body {
+  margin: 0;
+  background: radial-gradient(ellipse at 75% 4%, #29334b 0, var(--page) 42rem);
+  color: var(--ink);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  text-align: left;
+  user-select: auto;
+  -webkit-user-select: auto;
+}
+.menu {
+  position: sticky;
+  height: auto;
+  min-height: 68px;
+  padding: 10px clamp(16px, 5vw, 72px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  background: rgba(17, 21, 34, .94);
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  box-sizing: border-box;
+  backdrop-filter: blur(16px);
+}
+.menu .page-title {
+  margin: 0;
+  color: var(--ink);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 22px;
+  text-shadow: none;
+  white-space: nowrap;
+}
+.menu nav { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
+.menu a, .menu a#mypersona {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 9px 12px;
+  border-radius: 999px;
+  color: var(--muted);
+  font-weight: 600;
+  line-height: 1.2;
+  font-family: inherit;
+  font-size: 13px;
+  text-shadow: none;
+}
+.menu a:hover, .menu a:focus-visible { color: var(--ink); background: var(--panel-raised); }
+.menu a#mypersona { color: var(--gold); }
+.content {
+  width: min(1120px, calc(100% - 40px));
+  margin: 0 auto;
+  padding: 0 0 180px;
+  background: none;
+  text-align: left;
+}
+.hero { padding: clamp(42px, 8vw, 88px) 0 46px; }
+.eyebrow { color: var(--mint); font-size: 12px; font-weight: 750; letter-spacing: .16em; text-transform: uppercase; }
+.hero h1 { max-width: 720px; margin: 12px 0; font: 500 clamp(38px, 7vw, 68px)/1.04 Georgia, "Times New Roman", serif; letter-spacing: -.04em; }
+.hero p { max-width: 610px; margin: 0; color: var(--muted); font-size: 17px; line-height: 1.65; }
+.hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 25px; }
+.hero-actions a { padding: 12px 18px; border-radius: 10px; background: var(--gold); color: #24202a; font-weight: 750; text-decoration: none; }
+.hero-actions a.secondary { border: 1px solid var(--line); background: var(--panel); color: var(--ink); }
+.selection-status { min-height: 1.4em; margin-top: 16px !important; color: var(--mint) !important; font-size: 13px !important; }
+.library-heading { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 14px; margin: 10px 0 20px; }
+.library-heading h2, .section-title { margin: 0 0 5px; font: 500 clamp(26px, 4vw, 36px)/1.1 Georgia, "Times New Roman", serif; }
+.library-heading p, .section-intro { margin: 0; color: var(--muted); line-height: 1.55; }
+.library-tools { display: flex; align-items: center; gap: 10px; }
+.library-tools input {
+  width: min(260px, 52vw);
+  padding: 11px 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  outline: none;
+  background: var(--panel);
+  color: var(--ink);
+  font: inherit;
+}
+.library-tools input:focus { border-color: var(--mint); box-shadow: 0 0 0 3px rgba(145, 226, 192, .14); }
+.library-count { color: var(--muted); font-size: 13px; white-space: nowrap; }
+.spell-list, .weapon-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+  gap: 12px;
+  min-height: 0;
+  padding: 0 0 52px;
+}
+[hidden] { display: none !important; }
+.spell-list > .spell, .weapon-list > .weapon {
+  position: relative;
+  display: flex;
+  width: auto;
+  height: auto;
+  min-width: 0;
+  flex-direction: column;
+  align-items: stretch;
+  overflow: hidden;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: linear-gradient(145deg, #282f43, #1a1f2e);
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 13px;
+  text-align: left;
+  transition: transform .18s ease, border-color .18s ease, background .18s ease;
+}
+.spell-list > .spell:hover, .weapon-list > .weapon:hover,
+.spell-list > .spell:focus-visible, .weapon-list > .weapon:focus-visible {
+  z-index: 1;
+  transform: translateY(-3px);
+  border-color: var(--gold);
+  background: #30394f;
+  outline: none;
+}
+.spell-list > .spell::after, .weapon-list > .weapon::after { display: none; }
+.spell-list .spellart, .weapon-list .weaponart {
+  position: static;
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  border-radius: 9px;
+  background-position: center;
+  background-size: cover;
+}
+.library-item-label { display: block; padding: 8px 2px 3px; font-size: 12px; font-weight: 650; }
+.skill .library-item-label, .footer .library-item-label { display: none; }
+.about, .personality, .weapon-select, .mypersona, .spell-item, .makea6die {
+  display: block;
+  min-height: 0;
+  margin: 0 0 38px;
+  padding: clamp(20px, 4vw, 34px);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: linear-gradient(145deg, rgba(36, 43, 61, .94), rgba(26, 31, 46, .94));
+  color: var(--ink);
+}
+.about-centered { width: auto; margin: 0; line-height: 1.65; }
+.about h1, .about h2, .about h3 { font-family: Georgia, "Times New Roman", serif; }
+.about img { max-width: min(100%, 620px); height: auto; }
+.spell-item { display: none; grid-template-columns: 90px 1fr; gap: 18px; align-items: center; }
+.spell-item.is-visible { display: grid; }
+.spell-item .spell-details { height: auto; margin: 0; padding: 0; }
+.spell-item .spellimage {
+  grid-row: span 3;
+  width: 82px;
+  height: 82px;
+  border-radius: 14px;
+  background-position: center !important;
+  background-size: cover !important;
+}
+.spell-item .title { color: var(--gold); font: 600 22px Georgia, "Times New Roman", serif; }
+.spell-item .description, .spell-item .reallife { color: var(--muted); line-height: 1.55; }
+.builder-group { margin: 0 0 28px; }
+.builder-group h2 { margin: 0 0 5px; font: 500 28px Georgia, "Times New Roman", serif; }
+.builder-group > p { margin: 0 0 16px; color: var(--muted); }
+.personality, .weapon-select { display: grid; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); gap: 10px; }
+.personality br, .weapon-select br { display: none; }
+.personality .spell-container, .weapon-select .weapon-container {
+  display: grid;
+  width: auto;
+  height: auto;
+  min-height: 66px;
+  place-items: center;
+  border: 1px dashed rgba(240, 200, 121, .5);
+  border-radius: 12px;
+  background: rgba(17, 21, 34, .48);
+}
+.skill .spell, .skill .weapon {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background-color: transparent;
+}
+.skill .spellart, .skill .weaponart { width: 100%; height: 100%; background-position: center; background-size: cover; }
+.mypersona p {
+  display: flex;
+  justify-content: space-between;
+  margin: 8px 0;
+  padding: 13px 15px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(17, 21, 34, .45);
+  font-size: 15px;
+}
+.mypersona::before { content: "Your persona"; display: block; margin: 0 0 16px; font: 500 28px Georgia, "Times New Roman", serif; }
+.spell-item .spell-details .reallife { font-style: italic; }
+.footer {
+  box-sizing: border-box;
+  height: 98px;
+  padding: 10px clamp(12px, 4vw, 48px) 0;
+  overflow-x: auto;
+  background: rgba(17, 21, 34, .96);
+  border-top: 1px solid var(--line);
+  backdrop-filter: blur(16px);
+}
+.footer-content { display: flex; width: max-content; height: 60px; gap: 8px; }
+.footer::before { content: "QUICK SELECT"; display: block; margin: 0 0 5px; color: var(--muted); font-size: 10px; font-weight: 750; letter-spacing: .14em; }
+.skilltemplate {
+  box-sizing: border-box;
+  width: 54px;
+  height: 54px;
+  border: 1px dashed rgba(145, 226, 192, .45);
+  border-radius: 12px;
+  background: rgba(36, 43, 61, .72);
+}
+.footer .spell, .footer .weapon { width: 100%; height: 100%; border: 0; background-color: transparent; }
+.footer .spellart, .footer .weaponart { width: 100%; height: 100%; background-position: center; background-size: cover; }
+.copyright { display: none; }
+.menu a:focus-visible, .hero-actions a:focus-visible, button:focus-visible { outline: 2px solid var(--mint); outline-offset: 3px; }
+@media (max-width: 680px) {
+  .menu { align-items: flex-start; flex-direction: column; gap: 8px; padding: 12px 16px; }
+  .menu nav { justify-content: flex-start; width: 100%; overflow-x: auto; flex-wrap: nowrap; }
+  .menu a, .menu a#mypersona { flex: 0 0 auto; padding: 8px 10px; }
+  .menu a span { display: none; }
+  .content { width: calc(100% - 28px); padding-bottom: 160px; }
+  .hero { padding-top: 42px; }
+  .spell-list, .weapon-list { grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 9px; }
+  .spell-list > .spell, .weapon-list > .weapon { padding: 6px; }
+  .library-heading { align-items: stretch; flex-direction: column; }
+  .library-tools { justify-content: space-between; }
+  .library-tools input { width: auto; flex: 1; min-width: 0; }
+  .footer { height: 90px; }
+  .spell-item { grid-template-columns: 62px 1fr; gap: 12px; padding: 18px; }
+  .spell-item .spellimage { width: 58px; height: 58px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+}
 </style>
 </head>
 <body>
 <div class="menu">
 	<div class="page-title">Skill Personality</div>
-	
-	<a href="#" id="about" title="About the Idea"><span class="fas fa-info-circle"></span></a>
-	<a href="#" id="spell-list" title="Spell List"><span class="fas fa-fire"></span></a>
-	<a href="#" id="weapon-list" title="Weapon List"><span class="fas fa-shield-alt"></span></a>
-	<a href="#" id="mypersona" title="My Persona"><span class="far fa-user-circle"></span></a>
-	<a href="#" id="personality" title="My Spells"><span class="fas fa-hand-sparkles"></span></a>
-	<a href="#" id="weapon-select" title="My Weapons"><span class="fas fa-user-shield"></span></a>
-	<a href="#" id="makea6die" title="Make a 6-sided die"><span class="fas fa-dice-six"></span></a>
+	<nav aria-label="Main navigation">
+		<a href="#spell-list" id="spell-list-link"><span class="fas fa-fire" aria-hidden="true"></span> Spells</a>
+		<a href="#weapon-list" id="weapon-list-link"><span class="fas fa-shield-alt" aria-hidden="true"></span> Weapons</a>
+		<a href="#personality" id="personality-link"><span class="fas fa-hand-sparkles" aria-hidden="true"></span> Build</a>
+		<a href="#mypersona" id="mypersona-link"><span class="far fa-user-circle" aria-hidden="true"></span> My persona</a>
+		<a href="#about" id="about-link"><span class="fas fa-info-circle" aria-hidden="true"></span> About</a>
+	</nav>
 </div>
-<div class="content">
-<div class="spell-list">
+<main class="content">
+<section class="hero" aria-labelledby="hero-title">
+	<div class="eyebrow">Your story, your way</div>
+	<h1 id="hero-title">Build a hero that feels like you.</h1>
+	<p>Explore a hand-crafted library of fantasy spells and weapons, then mix your favorites into a character persona all your own.</p>
+	<div class="hero-actions">
+		<a href="#spell-list">Explore the library</a>
+		<a class="secondary" href="#personality">Start building</a>
+	</div>
+	<p id="selection-status" class="selection-status" role="status" aria-live="polite">Tip: tap an icon to add it to quick select. Tap it there to place it in your loadout.</p>
+</section>
+<div class="library-heading">
+	<div><h2>Spell library</h2><p>Choose an icon to add it to your quick select and reveal its story.</p></div>
+	<div class="library-tools"><label class="library-count" for="spell-search">Find a spell</label><input id="spell-search" type="search" placeholder="Search spells" autocomplete="off"></div>
+</div>
+<div class="spell-list" id="spell-list">
 	<div id="fireball" title="Fireball" class="intelligence spell wizard sorcerer" draggable="true" ondragstart="drag(event)">
 		<div class="fireball spellart"></div>
 	</div>
@@ -840,20 +1100,23 @@ left: 0cm;
 </div>
 <div class="about">
 	<div class="about-centered">
-<h1>About</h1>
+<h2 id="about">A little about the idea</h2>
 <p>This website was made to showcase a list of spells and weapons that are commonly available in role playing fantasy games. Here, you can
-choose a set of of spells and weapons by dragging and dropping them into the work space at the bottom of the screen. The ribbon at the bottom
-contains placeholder slots where you can drag your favourite spells/weapons in order to drag them back to the middle content for a range of
-activities. </p><br>
-<h2>How it works</h2>
-<p><strong>STEP 1: PLACEHOLDER SLOTS</strong> - click, hold/drag a spell from the spell list <img src="images/step1_spells.png"> or a weapon from the weapon list <img src="images/step1_weapons.png"> to the bottom placeholder slots.</p>
-<img src="images/step1.png">
-<p><strong>STEP 2: MY SPELL LIST</strong> - click, hold/drag the spell icons in the bottom placeholder slots into your "My Spell List" <img src="images/step2.png"> slots. </p>
-<p><strong>STEP 3: MY WEAPON LIST</strong> - click, hold/drag the weapon icons in the bottom placeholder slots into your "My Weapon List" <img src="images/step3.png"> slots. </p>
-<p><strong>STEP 4: MY PERSONA</strong> - click the "My Persona" icon <img src="images/step4.png"> to see your results. </p>
+choose a set of spells and weapons by dragging or tapping them into your loadout. The quick-select ribbon at the bottom keeps your choices close
+while you build a persona that reflects your play style.</p><br>
+<h3>How it works</h3>
+<p><strong>STEP 1: QUICK SELECT</strong> - drag or tap a spell from the spell list <img src="images/step1_spells.png" alt="Spell icon"> or a weapon from the weapon list <img src="images/step1_weapons.png" alt="Weapon icon"> to quick select at the bottom.</p>
+<img src="images/step1.png" alt="Selecting abilities and weapons for a fantasy persona">
+<p><strong>STEP 2: MY SPELL LIST</strong> - move the spell icons in quick select into your spell slots. <img src="images/step2.png" alt="Spell selection slots"></p>
+<p><strong>STEP 3: MY WEAPON LIST</strong> - move weapon icons from quick select into your weapon slots. <img src="images/step3.png" alt="Weapon selection slots"></p>
+<p><strong>STEP 4: MY PERSONA</strong> - choose "My persona" in the navigation to see your results. <img src="images/step4.png" alt="Persona results"></p>
 </div>
 </div>
-<div class="weapon-list">
+<div class="library-heading">
+	<div><h2>Weapon library</h2><p>Choose an icon to add it to your quick select and reveal its story.</p></div>
+	<div class="library-tools"><label class="library-count" for="weapon-search">Find a weapon</label><input id="weapon-search" type="search" placeholder="Search weapons" autocomplete="off"></div>
+</div>
+<div class="weapon-list" id="weapon-list">
 	<div id="crystalstaff" title="Crystal Staff" class="intelligence weapon wizard sorcerer" draggable="true" ondragstart="drag(event)">
 	  <div class="crystalstaff weaponart"></div>
 	</div>
@@ -1018,9 +1281,12 @@ activities. </p><br>
 	</div>
 </div>
 
-<div class="mypersona">
+<div class="mypersona" id="mypersona" role="region" aria-label="Your generated persona" aria-live="polite">
 	
 </div>
+<div class="builder-group">
+	<h2 id="personality">Your spell loadout</h2>
+	<p>Drag spells from quick select into a slot, or tap a spell to place it automatically.</p>
 <div class="personality">
 	<div class="skill spell-container" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
 	<br>
@@ -1039,6 +1305,9 @@ activities. </p><br>
 	<div class="skill spell-container" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
 	<div class="skill spell-container" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
 </div>
+<div class="builder-group">
+	<h2 id="weapon-select">Your weapon loadout</h2>
+	<p>Bring your character together with up to five signature weapons.</p>
 <div class="weapon-select">
 	<div class="skill weapon-container" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
 	<br>
@@ -1046,6 +1315,7 @@ activities. </p><br>
 	<div class="skill weapon-container" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
 	<div class="skill weapon-container" ondrop="drop(event)" ondragover="allowDrop(event)"></div>	
 	<div class="skill weapon-container" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+</div>
 </div>
 <div class="makea6die">
 	
@@ -1062,7 +1332,7 @@ activities. </p><br>
 		</div>
 	</div>
 </div>
-</div>
+</main>
 
 <div class="footer">
 	<div class="footer-content">
